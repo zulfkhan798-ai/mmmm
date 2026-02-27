@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sebuah Gift Untukmu</title>
+    <style>
+        /* ========== RESET & BASE ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            color: white;
+        }
+
+        /* ========== INTRO SCREEN ========== */
+        #intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+
+        #intro-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .intro-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .intro-title {
+            font-size: 24px;
+            color: white;
+            margin-bottom: 8px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .intro-subtitle {
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 40px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .play-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 16px 45px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ========== iMUSIC ANIMATION SCREEN ========== */
+        #imusic-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f23 100%);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 30px;
+        }
+
+        #imusic-screen.show {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Album Art - iPod Classic Style */
+        .album-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin-bottom: 40px;
+        }
+
+        .album-art {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 80px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 2;
+        }
+
+        .album-art.playing {
+            animation: rotateAlbum 8s linear infinite;
+        }
+
+        .album-art.paused {
+            animation-play-state: paused;
+        }
+
+        @keyframes rotateAlbum {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Vinyl effect */
+        .album-art::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: #1a1a2e;
+            border-radius: 50%;
+            border: 3px solid #333;
+        }
+
+        .album-art::after {
+            content: '🌸';
+            position: absolute;
+            font-size: 30px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Song Info */
+        .song-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .song-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .song-artist {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Lyrics */
+        .lyrics-container {
+            width: 100%;
+            max-width: 320px;
+            height: 120px;
+            overflow: hidden;
+            text-align: center;
+            position: relative;
+        }
+
+        .lyrics {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.5s ease;
+        }
+
+        .lyric-line {
+            font-size: 16px;
+            color: rgba(255,255,255,0.4);
+            padding: 8px 0;
+            transition: all 0.3s ease;
+        }
+
+        .lyric-line.active {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            transform: scale(1.1);
+        }
+
+        /* Control Button */
+        .control-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
+        }
+
+        /* ========== MAIN CONTAINER ========== */
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            width: 100%;
+            max-width: 450px;
+            padding: 35px 25px;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            display: none;
+        }
+
+        .container.show {
+            display: block;
+            animation: fadeIn 0.8s ease;
+        }
+
+        /* Corner Decorations */
+        .corner-decoration {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0.6;
+        }
+
+        .corner-1 { top: 10px; left: 15px; }
+        .corner-2 { top: 10px; right: 15px; }
+        .corner-3 { bottom: 10px; left: 15px; }
+        .corner-4 { bottom: 10px; right: 15px; }
+
+        h1 {
+            color: #667eea;
+            font-size: 22px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        p {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        }
+
+        input.error {
+            border-color: #f44336;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow5px 20: 0 px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .bagian {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .bagian.aktif {
+            display: block;
+        }
+
+        /* Error Message */
+        .error-message {
+            color: #f44336;
+            font-size: 14px;
+            margin-top: -15px;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* Loading */
+        .loading-spinner {
+            font-size: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px 0;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Gift Message */
+        .gift-message {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px 20px;
+            border-radius: 15px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .gift-message p {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .gift-message p:last-child {
+            margin-bottom: 0;
+        }
+
+        .heart-icon {
+            color: #667eea;
+            font-size: 24px;
+            margin: 10px 0;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Music Control */
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .music-control.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @media (max-width: 350px) {
+            .container { padding: 25px 15px; }
+            h1 { font-size: 20px; }
+            .album-container { width: 220px; height: 220px; }
+            .album-art { width: 220px; height: 220px; font-size: 60px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== AUDIO ELEMENT ========== -->
+    <!-- 
+    ========================================
+    PASTIKAN FILE LAGU ADA!
+    Simpan file musik dengan nama: "bunga_bagas_zaki.mp3"
+    di folder yang sama dengan file HTML ini.
+    ========================================
+    -->
+    <audio id="bgMusic" loop>
+        <source src="bunga_bagas_zaki.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- ========== INTRO SCREEN ========== -->
+    <div id="intro-screen">
+        <div class="intro-icon">🌸</div>
+        <h1 class="intro-title">Sebuah Gift Untukmu</h1>
+        <p class="intro-subtitle">Dari seseorang yang selalu ada untukmu...</p>
+        
+        <button class="play-btn" onclick="mulaiPengalaman()">
+            <span>🎵</span> Buka Gift
+        </button>
+    </div>
+
+    <!-- ========== iMUSIC ANIMATION SCREEN ========== -->
+    <div id="imusic-screen">
+        <!-- Album Art -->
+        <div class="album-container">
+            <div class="album-art" id="albumArt">
+                🌸
+            </div>
+        </div>
+
+        <!-- Song Info -->
+        <div class="song-info">
+            <div class="song-title">Bunga</div>
+            <div class="song-artist">Bagas Zaki</div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="time-display">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <!-- Lyrics -->
+        <div class="lyrics-container">
+            <div class="lyrics" id="lyricsTrack">
+                <!-- Lyrics akan di-generate via JS -->
+            </div>
+        </div>
+
+        <!-- Control Button -->
+        <button class="control-btn" id="controlBtn" onclick="toggleMusic()">⏸️</button>
+    </div>
+
+    <!-- ========== MAIN CONTENT (PERTANYAAN) ========== -->
+    <div class="container">
+        <!-- Corner Decorations -->
+        <span class="corner-decoration corner-1">🌸</span>
+        <span class="corner-decoration corner-2">🌸</span>
+        <span
